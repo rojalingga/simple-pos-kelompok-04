@@ -23,6 +23,10 @@
                 (sum, item) => sum + item.price,
                 0
             );
+        },
+
+        removeFromCart(id) {
+            this.cart = this.cart.filter(item => item.id !== id);
         }
     }"
 >
@@ -53,7 +57,16 @@
     <div class="mt-4 border-t pt-3">
 
         <template x-for="item in cart" :key="item.id">
-            <p x-text="item.name + ' - Rp ' + item.price"></p>
+            <div class="flex items-center gap-2">
+                <p x-text="item.name + ' - Rp ' + item.price"></p>
+                <button
+                    type="button"
+                    class="text-sm text-red-600 hover:text-red-800"
+                    @click="removeFromCart(item.id)"
+                >
+                    Hapus
+                </button>
+            </div>
         </template>
 
         <p class="font-semibold mt-2">
