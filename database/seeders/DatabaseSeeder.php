@@ -25,11 +25,12 @@ class DatabaseSeeder extends Seeder
             for ($i = 0; $i < 75; $i++) {
                 $products[] = [
                     'category_id' => $categoryId,
-                    'name' => fake()->words(2, true),
-                    'price' => fake()->numberBetween(3000, 50000),
-                    'stock' => fake()->numberBetween(0, 200),
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'name'        => fake()->words(2, true),
+                    'price'       => fake()->numberBetween(3000, 50000),
+                    'stock'       => fake()->numberBetween(0, 200),
+                    'is_active'   => fake()->boolean(90), // 90% true (aktif), 10% false (nonaktif)
+                    'created_at'  => now(),
+                    'updated_at'  => now(),
                 ];
             }
         }
@@ -55,36 +56,26 @@ class DatabaseSeeder extends Seeder
 
                     $details[] = [
                         'product_id' => $productId,
-                        'qty' => $qty,
-                        'subtotal' => $subtotal,
+                        'qty'        => $qty,
+                        'subtotal'   => $subtotal,
                     ];
                 }
 
                 $transactionId = DB::table('transactions')->insertGetId([
-                    'user_id' => $user->id,
-                    'total' => $total,
+                    'user_id'    => $user->id,
+                    'total'      => $total,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
 
                 foreach ($details as &$detail) {
                     $detail['transaction_id'] = $transactionId;
-                    $detail['created_at'] = now();
-                    $detail['updated_at'] = now();
+                    $detail['created_at']     = now();
+                    $detail['updated_at']     = now();
                 }
 
                 DB::table('transaction_details')->insert($details);
             });
         }
-    }
-    public function up(): void
-    {
-        Schema::table('products', function (Blueprint $table) {
-            $table->index('category_id');
-        });
-
-        Schema::table('transactions', function (Blueprint $table) {
-            $table->index('user_id');
-        });
     }
 }
