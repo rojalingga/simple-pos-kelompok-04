@@ -1,4 +1,3 @@
-```blade
 <nav class="bg-slate-900 text-white px-6 py-3.5 flex items-center gap-6 shadow-sm">
     <span class="font-bold tracking-wide text-emerald-400">Simple POS</span>
 
@@ -19,4 +18,3 @@
         </a>
     </div>
 </nav>
-```
