@@ -10,6 +10,8 @@
         <p class="font-medium">
             Transaksi #{{ $transaction->id }}
             &middot; {{ $transaction->created_at->format('d M Y H:i') }}
+            &middot; Kasir: {{ $transaction->user->name ?? '-' }}
+            &middot; {{ $transaction->details->sum('qty') }} item
             &middot; Rp {{ number_format($transaction->total) }}
         </p>
 
