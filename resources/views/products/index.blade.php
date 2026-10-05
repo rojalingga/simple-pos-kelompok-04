@@ -20,6 +20,7 @@
                 <th class="py-2 pr-4">Kategori</th>
                 <th class="py-2 pr-4">Harga</th>
                 <th class="py-2 pr-4">Stok</th>
+                <th class="py-2">Aksi</th>
             </tr>
         </thead>
 
@@ -40,6 +41,9 @@
 
                     <td class="py-2 pr-4">
                         {{ $product->stock }}
+                    </td>
+                    <td class="py-2">
+                        <a href="{{ route("products.edit", $product->id) }}" class="text-blue-600 underline">Edit</a>
                     </td>
                 </tr>
             @endforeach
