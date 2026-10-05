@@ -5,7 +5,7 @@ use App\Http\Requests\StoreTransactionRequest;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; use Illuminate\Validation\ValidationException;
 
 class TransactionController extends Controller
 {
@@ -27,15 +27,19 @@ class TransactionController extends Controller
 
             $total = 0;
 
-            foreach ($validated['items'] as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $subtotal = $product->price * $item['qty'];
-                $total += $subtotal;
+            $merged = []; foreach ($validated['items'] as $item) { $pid = $item['product_id'];
+            $merged[$pid] = ($merged[$pid] ?? 0) + (int) $item['qty']; }
+            foreach ($merged as $productId => $qty) {
+                $product = Product::whereKey($productId)->lockForUpdate()->firstOrFail(); if ($qty > $product->stock)
+                { throw ValidationException::withMessages(
+                    ["items" => ["Stok produk " . $product->name . " tidak mencukupi (stok: " . $product->stock . ", diminta: " . $qty . ")."]]); }
+                $subtotal = $product->price * $qty;
+                $total += $subtotal; $product->decrement("stock", $qty);
 
                 TransactionDetail::create([
                     'transaction_id' => $transaction->id,
                     'product_id' => $product->id,
-                    'qty' => $item['qty'],
+                    'qty' => $qty,
                     'subtotal' => $subtotal,
                 ]);
             }
