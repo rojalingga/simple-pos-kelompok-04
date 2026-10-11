@@ -1,20 +1,42 @@
-<nav class="bg-slate-900 text-white px-6 py-3.5 flex items-center gap-6 shadow-sm">
-    <span class="font-bold tracking-wide text-emerald-400">Simple POS</span>
+<nav class="bg-slate-900 text-white px-4 py-3 flex gap-4 items-center">
 
-    <div class="flex items-center gap-4">
-        <a href="{{ route('pos.create') }}"
-           class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('pos.create') ? 'bg-slate-800 text-white border-b-2 border-emerald-400' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' }}">
-            Kasir
-        </a>
+    <span class="font-semibold">
+        Simple POS
+    </span>
 
-        <a href="{{ route('transactions.index') }}"
-           class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('transactions.index') ? 'bg-slate-800 text-white border-b-2 border-emerald-400' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' }}">
-            Transaksi
-        </a>
+    <a href="{{ route('pos.create') }}" class="hover:underline">
+        Kasir
+    </a>
 
-        <a href="{{ route('products.index') }}"
-           class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{ request()->routeIs('products.index') ? 'bg-slate-800 text-white border-b-2 border-emerald-400' : 'text-slate-300 hover:text-white hover:bg-slate-800/60' }}">
+    <a href="{{ route('transactions.index') }}" class="hover:underline">
+        Transaksi
+    </a>
+
+    @if (auth()->user()?->isAdmin())
+
+        <a href="{{ route('products.index') }}" class="hover:underline">
             Produk
         </a>
-    </div>
+
+        <a href="{{ route('categories.index') }}" class="hover:underline">
+            Kategori
+        </a>
+
+    @endif
+
+    <span class="ml-auto text-sm">
+        {{ auth()->user()?->name }}
+        ({{ auth()->user()?->role }})
+    </span>
+
+    <form method="POST" action="{{ route('logout') }}">
+
+        @csrf
+
+        <button class="hover:underline">
+            Keluar
+        </button>
+
+    </form>
+
 </nav>
