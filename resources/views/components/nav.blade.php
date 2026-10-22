@@ -15,14 +15,16 @@
                 Kasir
             </a>
 
-            <a href="{{ route('transactions.index') }}"
-                @class([
-                    'rounded-md px-2.5 py-1.5 transition hover:bg-slate-800 hover:text-white',
-                    'bg-slate-800 text-white' => request()->routeIs('transactions.*'),
-                    'text-slate-300' => ! request()->routeIs('transactions.*'),
-                ])>
-                Transaksi
-            </a>
+            @if (auth()->user()?->hasRole('admin', 'manager'))
+                <a href="{{ route('transactions.index') }}"
+                    @class([
+                        'rounded-md px-2.5 py-1.5 transition hover:bg-slate-800 hover:text-white',
+                        'bg-slate-800 text-white' => request()->routeIs('transactions.*'),
+                        'text-slate-300' => ! request()->routeIs('transactions.*'),
+                    ])>
+                    Transaksi
+                </a>
+            @endif
 
             @if (auth()->user()?->isAdmin())
                 <a href="{{ route('products.index') }}"

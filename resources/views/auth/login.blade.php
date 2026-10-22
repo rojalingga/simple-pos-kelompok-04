@@ -58,6 +58,7 @@
                     <div class="mt-2 space-y-1">
                         <p><span class="text-slate-500">Admin:</span> admin@pos.test</p>
                         <p><span class="text-slate-500">Kasir:</span> kasir@pos.test</p>
+                        <p><span class="text-slate-500">Manager:</span> manager@pos.test</p>
                     </div>
                     <p class="mt-2 text-slate-500">
                         Kata sandi:
@@ -66,7 +67,11 @@
                 </div>
             </div>
 
-            <p class="mt-4 text-center text-xs text-slate-400">&copy; {{ date('Y') }} Simple POS</p>
+            <p class="mt-4 text-center text-xs text-slate-400">
+                <a href="{{ route('info') }}" class="transition hover:text-slate-600">Tentang Simple POS</a>
+                <span class="mx-1.5">&middot;</span>
+                <span>&copy; {{ date('Y') }} Simple POS</span>
+            </p>
         </div>
     </div>
 </body>

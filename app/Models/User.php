@@ -47,6 +47,10 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+    public function hasRole(string ...$roles): bool
+    {
+        return in_array($this->role, $roles, true);
+    }
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
