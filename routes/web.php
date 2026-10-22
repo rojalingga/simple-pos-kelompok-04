@@ -32,5 +32,6 @@ Route::middleware('auth')->group(function () {
         Route::resource('products', ProductController::class)->except(['show', 'destroy']);
 
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export.csv');
     });
 });
