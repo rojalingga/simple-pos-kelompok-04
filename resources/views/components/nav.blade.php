@@ -44,6 +44,15 @@
                     ])>
                     Kategori
                 </a>
+
+                <a href="{{ route('reports.index') }}"
+                    @class([
+                        'rounded-md px-2.5 py-1.5 transition hover:bg-slate-800 hover:text-white',
+                        'bg-slate-800 text-white' => request()->routeIs('reports.*'),
+                        'text-slate-300' => ! request()->routeIs('reports.*'),
+                    ])>
+                    Laporan
+                </a>
             @endif
         </div>
 
