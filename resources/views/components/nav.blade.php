@@ -53,6 +53,7 @@
                     ])>
                     Laporan
                 </a>
+                <a href="{{ route('import.create') }}" class="hover:underline">Import</a>
             @endif
         </div>
 
