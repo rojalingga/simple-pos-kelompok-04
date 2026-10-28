@@ -7,10 +7,11 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest')->group(function () {
-    Route::view('/', 'info')->name('info');
-    Route::view('/info', 'info');
+Route::get('/', function () {
+    return redirect()->route('pos.create');
+});
 
+Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store']);
 });
@@ -22,16 +23,14 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 Route::middleware('auth')->group(function () {
     Route::get('/pos', [TransactionController::class, 'create'])->name('pos.create');
     Route::post('/pos', [TransactionController::class, 'store'])->name('transactions.store');
-
-    Route::middleware('role:admin,manager')->group(function () {
-        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
-    });
+    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
 
     Route::middleware('role:admin')->group(function () {
         Route::resource('categories', CategoryController::class)->except('show');
         Route::resource('products', ProductController::class)->except(['show', 'destroy']);
-
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/export/csv', [ReportController::class, 'exportCsv'])->name('reports.export.csv');
+        Route::get('/reports/export/xlsx', [ReportController::class, 'exportExcel'])->name('reports.export.xlsx');
+        
     });
 });
