@@ -46,7 +46,10 @@ class LoginController extends Controller
         Auth::logout();
 
         $request->session()->invalidate();
+ memory-benchmark
 
+=======
+ main
         $request->session()->regenerateToken();
 
         return redirect()->route('login');

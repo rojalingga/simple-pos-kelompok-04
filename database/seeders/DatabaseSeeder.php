@@ -12,7 +12,11 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(DemoUserSeeder::class);
+ memory-benchmark
         
+=======
+
+ main
         $user = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
