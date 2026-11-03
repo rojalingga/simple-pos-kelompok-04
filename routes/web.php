@@ -7,8 +7,14 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
+Route::view('/info', 'info')->name('info');
+
 Route::get('/', function () {
-    return redirect()->route('pos.create');
+    if (auth()->check()) {
+        return redirect()->route('pos.create');
+    }
+
+    return view('info');
 });
 
 Route::middleware('guest')->group(function () {
@@ -23,7 +29,9 @@ Route::post('/logout', [LoginController::class, 'destroy'])
 Route::middleware('auth')->group(function () {
     Route::get('/pos', [TransactionController::class, 'create'])->name('pos.create');
     Route::post('/pos', [TransactionController::class, 'store'])->name('transactions.store');
-    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions', [TransactionController::class, 'index'])
+        ->middleware('role:admin,manager')
+        ->name('transactions.index');
 
     Route::middleware('role:admin')->group(function () {
         Route::resource('categories', CategoryController::class)->except('show');

@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Exports\SalesReportExport;
 use App\Jobs\ProcessProductImport;
+use App\Jobs\ProcessProductImportExcel;
+use App\Models\Category;
+use App\Models\ImportError;
 use App\Models\Transaction;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
@@ -20,22 +23,26 @@ class ReportController extends Controller
     public function index(Request $request): View
     {
         [$from, $to] = $this->resolveDateRange($request);
+        $categoryId = $this->resolveCategoryId($request);
 
-        $query = $this->filteredQuery($from, $to);
+        $query = $this->filteredQuery($from, $to, $categoryId);
 
         return view('reports.index', [
             'totalPenjualan' => $query->sum('total'),
             'jumlahTransaksi' => $query->count(),
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
+            'categoryId' => $categoryId,
+            'categories' => Category::orderBy('name')->get(),
         ]);
     }
 
     public function exportCsv(Request $request): StreamedResponse
     {
         [$from, $to] = $this->resolveDateRange($request);
+        $categoryId = $this->resolveCategoryId($request);
 
-        $query = $this->filteredQuery($from, $to);
+        $query = $this->filteredQuery($from, $to, $categoryId);
 
         return response()->streamDownload(function () use ($query) {
             $out = fopen('php://output', 'w');
@@ -58,9 +65,10 @@ class ReportController extends Controller
     public function exportExcel(Request $request): BinaryFileResponse
     {
         [$from, $to] = $this->resolveDateRange($request);
+        $categoryId = $this->resolveCategoryId($request);
 
         return Excel::download(
-            new SalesReportExport($this->filteredQuery($from, $to)),
+            new SalesReportExport($this->filteredQuery($from, $to, $categoryId)),
             'laporan-penjualan.xlsx',
         );
     }
@@ -68,13 +76,19 @@ class ReportController extends Controller
     public function exportPdf(Request $request): Response
     {
         [$from, $to] = $this->resolveDateRange($request);
+        $categoryId = $this->resolveCategoryId($request);
+
+        $query = $this->filteredQuery($from, $to, $categoryId);
 
         $pdf = Pdf::loadView('reports.pdf', [
-            'totalPenjualan' => $this->filteredQuery($from, $to)->sum('total'),
-            'jumlahTransaksi' => $this->filteredQuery($from, $to)->count(),
-            'transactions' => $this->filteredQuery($from, $to)->latest()->limit(50)->get(),
+            'totalPenjualan' => (clone $query)->sum('total'),
+            'jumlahTransaksi' => (clone $query)->count(),
+            'transactions' => $query->latest()->limit(50)->get(),
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
+            'categoryName' => $categoryId === null
+                ? null
+                : Category::find($categoryId)?->name,
         ]);
 
         return $pdf->download('laporan-penjualan.pdf');
@@ -82,22 +96,37 @@ class ReportController extends Controller
 
     public function importForm(): View
     {
-        return view('reports.import');
+        return view('reports.import', [
+            'importErrors' => ImportError::latest()->paginate(20),
+        ]);
     }
 
     public function import(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'csv' => ['required', 'file', 'mimes:csv,txt'],
+            'mode' => ['nullable', 'in:manual,excel'],
         ]);
 
-        $path = $request->file('csv')->store('imports');
+        $file = $request->file('csv');
+        $path = $file->store('imports');
+        $mode = $validated['mode'] ?? 'manual';
 
-        ProcessProductImport::dispatch($path);
+        $job = $mode === 'excel'
+            ? ProcessProductImportExcel::class
+            : ProcessProductImport::class;
+
+        $job::dispatch(
+            $path,
+            $request->user()?->id,
+            $file->getClientOriginalName(),
+        );
+
+        $label = $mode === 'excel' ? 'Laravel Excel' : 'manual';
 
         return back()->with(
             'success',
-            'Import sedang diproses di background.'
+            "Import ({$label}) sedang diproses di background."
         );
     }
 
@@ -109,8 +138,25 @@ class ReportController extends Controller
         return [$from, $to];
     }
 
-    private function filteredQuery($from, $to): Builder
+    private function resolveCategoryId(Request $request): ?int
     {
-        return Transaction::with('user')->whereBetween('created_at', [$from, $to]);
+        $categoryId = $request->input('category_id', $request->input('category'));
+
+        if ($categoryId === null || $categoryId === '' || ! is_scalar($categoryId)) {
+            return null;
+        }
+
+        return (int) $categoryId;
+    }
+
+    private function filteredQuery($from, $to, ?int $categoryId = null): Builder
+    {
+        return Transaction::with('user')
+            ->whereBetween('created_at', [$from, $to])
+            ->when($categoryId !== null, function (Builder $query) use ($categoryId) {
+                $query->whereHas('details.product', function (Builder $query) use ($categoryId) {
+                    $query->where('products.category_id', $categoryId);
+                });
+            });
     }
 }

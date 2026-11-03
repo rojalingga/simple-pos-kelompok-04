@@ -26,6 +26,13 @@ class GuestAccessTest extends TestCase
         $this->get('/info')->assertOk();
     }
 
+    public function test_guest_can_open_login_page(): void
+    {
+        $this->get('/login')
+            ->assertOk()
+            ->assertSee('Masuk untuk mulai transaksi');
+    }
+
     public function test_authenticated_user_is_redirected_from_root_to_pos(): void
     {
         $user = User::factory()->create();
