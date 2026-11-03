@@ -72,3 +72,57 @@ Hasil yang diharapkan:
 - Navigasi menampilkan menu Kasir dan Transaksi, tanpa menu Produk dan Kategori.
 - Halaman `/transactions` dapat dibuka dan menampilkan riwayat transaksi.
 - `/products` dan `/categories` menampilkan halaman 403 dengan pesan "Halaman ini hanya untuk peran admin."
+
+## Proses yang Layak Dipindah ke Queued Job
+
+### Export laporan PDF (`GET /reports/export/pdf`)
+
+Proses ini cocok dijadikan queued job karena saat ini seluruh pekerjaannya
+dilakukan di dalam request HTTP:
+
+1. `ReportController::exportPdf()` menjalankan beberapa query agregasi
+   (`sum`, `count`, daftar 50 transaksi terbaru, dan 10 produk terlaris).
+2. Hasilnya dirender menjadi HTML melalui Blade `reports.pdf`.
+3. DomPDF mengubah HTML tersebut menjadi berkas PDF, lalu dikirim langsung
+   sebagai response download.
+
+Alasan proses ini lebih baik di-queue:
+
+- **Beban CPU dan memori tinggi.** Rendering DomPDF bekerja di memori proses
+  PHP. Semakin panjang rentang tanggal dan semakin banyak transaksi, semakin
+  besar HTML yang harus diproses. Pekerjaan seperti ini dapat menghabiskan
+  waktu lebih lama daripada batas `max_execution_time` dan berisiko
+  `memory_limit` habis, sehingga request gagal di tengah jalan.
+- **Tidak perlu ditunggu.** Pengguna tidak harus menahan koneksi selama PDF
+  dibuat. Request cukup membuat job lalu langsung mengembalikan respons,
+  sehingga halaman tetap responsif dan tidak terkena timeout web server.
+- **Lebih tahan gagal.** Job punya `tries` dan `backoff`, jadi kegagalan
+  sementara (misalnya database lambat) bisa dicoba ulang otomatis. Jika
+  dijalankan langsung di request, pengguna harus menekan tombol export lagi
+  secara manual.
+- **Bisa dibatasi dan diprioritaskan.** Worker dapat diatur jumlahnya dan
+  dipisahkan dari proses web, sehingga beberapa export besar tidak saling
+  berebut resource dengan permintaan kasir di `/pos`.
+- **Pola yang sudah dipakai.** Import produk sudah berjalan lewat
+  `ProcessProductImport` dan `ProcessProductImportExcel` pada koneksi
+  `database` (`QUEUE_CONNECTION=database`), jadi infrastruktur queue dan
+  worker (`php artisan queue:work`) sudah tersedia.
+
+Konsekuensi yang perlu disiapkan jika dipindah:
+
+- **Status pekerjaan.** Perlu penanda status (misalnya `pending`, `processing`,
+  `done`, `failed`) agar pengguna tahu kapan PDF siap.
+- **Penyimpanan sementara.** PDF disimpan dulu di disk (misalnya
+  `storage/app/reports`), bukan langsung dikirim sebagai response.
+- **Unduhan aman.** Gunakan signed URL atau route ber-middleware agar berkas
+  hanya bisa diunduh oleh pengguna yang berhak.
+- **Pembersihan berkas.** Tambahkan scheduled command untuk menghapus PDF lama
+  supaya disk tidak penuh.
+- **Notifikasi.** Beri tahu pengguna saat job selesai, misalnya lewat badge di
+  halaman laporan atau email, karena hasilnya tidak lagi instan.
+
+Export CSV dan Excel tidak dipilih karena keduanya mengambil data bertahap:
+CSV memakai `lazyById()` di dalam `streamed response`, sedangkan Excel memakai
+`FromQuery` sehingga baris diproses per chunk tanpa menahan seluruh hasil di
+memori. PDF justru harus dirender utuh lebih dulu, sehingga paling terdampak
+bila data laporan membesar.

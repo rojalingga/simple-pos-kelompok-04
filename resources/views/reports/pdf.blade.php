@@ -10,6 +10,7 @@
         th, td { border: 1px solid #999; padding: 4px 8px; text-align: left; }
         th { background: #eee; }
         .right { text-align: right; }
+        .center { text-align: center; }
     </style>
 </head>
 <body>
@@ -19,6 +20,34 @@
         <p>Kategori: {{ $categoryName }}</p>
     @endif
     <p>Total penjualan: <strong>Rp {{ number_format($totalPenjualan) }}</strong> dari {{ $jumlahTransaksi }} transaksi</p>
+
+    <h2>Produk Terlaris</h2>
+    <p>10 produk dengan jumlah terjual terbanyak pada periode ini:</p>
+    <table>
+        <thead>
+            <tr>
+                <th class="center">No</th>
+                <th>Produk</th>
+                <th class="right">Qty Terjual</th>
+                <th class="right">Total Penjualan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($topProducts as $index => $product)
+            <tr>
+                <td class="center">{{ $index + 1 }}</td>
+                <td>{{ $product->name }}</td>
+                <td class="right">{{ number_format($product->total_qty) }}</td>
+                <td class="right">Rp {{ number_format($product->total_sales) }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="4" class="center">Belum ada penjualan pada periode ini.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+
     <p>50 transaksi terbaru pada periode ini:</p>
     <table>
         <thead>

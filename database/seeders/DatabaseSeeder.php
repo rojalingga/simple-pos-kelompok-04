@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(DemoUserSeeder::class);
 
-        $user = User::factory()->create([
+        User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
@@ -27,12 +27,12 @@ class DatabaseSeeder extends Seeder
             for ($i = 0; $i < 75; $i++) {
                 $products[] = [
                     'category_id' => $categoryId,
-                    'name'        => fake()->words(2, true),
-                    'price'       => fake()->numberBetween(3000, 50000),
-                    'stock'       => fake()->numberBetween(0, 200),
-                    'is_active'   => fake()->boolean(90), // 90% true (aktif), 10% false (nonaktif)
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
+                    'name' => fake()->words(2, true),
+                    'price' => fake()->numberBetween(3000, 50000),
+                    'stock' => fake()->numberBetween(0, 200),
+                    'is_active' => fake()->boolean(90), // 90% true (aktif), 10% false (nonaktif)
+                    'created_at' => now(),
+                    'updated_at' => now(),
                 ];
             }
         }
@@ -41,43 +41,6 @@ class DatabaseSeeder extends Seeder
             DB::table('products')->insert($chunk);
         }
 
-        $productPrices = DB::table('products')->pluck('price', 'id');
-        $productIds = $productPrices->keys()->all();
-
-        for ($t = 0; $t < 2500; $t++) {
-            DB::transaction(function () use ($user, $productIds, $productPrices) {
-                $itemCount = fake()->numberBetween(1, 4);
-                $total = 0;
-                $details = [];
-
-                for ($i = 0; $i < $itemCount; $i++) {
-                    $productId = fake()->randomElement($productIds);
-                    $qty = fake()->numberBetween(1, 3);
-                    $subtotal = $productPrices[$productId] * $qty;
-                    $total += $subtotal;
-
-                    $details[] = [
-                        'product_id' => $productId,
-                        'qty'        => $qty,
-                        'subtotal'   => $subtotal,
-                    ];
-                }
-
-                $transactionId = DB::table('transactions')->insertGetId([
-                    'user_id'    => $user->id,
-                    'total'      => $total,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-
-                foreach ($details as &$detail) {
-                    $detail['transaction_id'] = $transactionId;
-                    $detail['created_at']     = now();
-                    $detail['updated_at']     = now();
-                }
-
-                DB::table('transaction_details')->insert($details);
-            });
-        }
+        $this->call(SalesReportSeeder::class);
     }
 }

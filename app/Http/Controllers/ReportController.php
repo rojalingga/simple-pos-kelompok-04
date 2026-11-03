@@ -8,6 +8,7 @@ use App\Jobs\ProcessProductImportExcel;
 use App\Models\Category;
 use App\Models\ImportError;
 use App\Models\Transaction;
+use App\Models\TransactionDetail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -84,6 +85,7 @@ class ReportController extends Controller
             'totalPenjualan' => (clone $query)->sum('total'),
             'jumlahTransaksi' => (clone $query)->count(),
             'transactions' => $query->latest()->limit(50)->get(),
+            'topProducts' => $this->topProductsQuery($from, $to, $categoryId)->get(),
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
             'categoryName' => $categoryId === null
@@ -122,12 +124,31 @@ class ReportController extends Controller
             $file->getClientOriginalName(),
         );
 
-        $label = $mode === 'excel' ? 'Laravel Excel' : 'manual';
-
         return back()->with(
             'success',
-            "Import ({$label}) sedang diproses di background."
+            'Import sedang diproses di background.'
         );
+    }
+
+    private function topProductsQuery($from, $to, ?int $categoryId = null): Builder
+    {
+        $query = TransactionDetail::query();
+
+        $query->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->join('products', 'products.id', '=', 'transaction_details.product_id')
+            ->whereBetween('transactions.created_at', [$from, $to])
+            ->when($categoryId !== null, function (Builder $query) use ($categoryId) {
+                $query->where('products.category_id', $categoryId);
+            })
+            ->selectRaw('products.name as name')
+            ->selectRaw('SUM(transaction_details.qty) as total_qty')
+            ->selectRaw('SUM(transaction_details.subtotal) as total_sales')
+            ->groupBy('products.id', 'products.name')
+            ->orderByDesc('total_qty')
+            ->orderByDesc('total_sales')
+            ->limit(10);
+
+        return $query;
     }
 
     private function resolveDateRange(Request $request): array
