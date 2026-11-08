@@ -7,7 +7,7 @@ class ApiClientDemo extends Command
 { 
 /** 
 * The name and signature of the console command. 
-7
+
 * 
 * @var string 
 */ 
