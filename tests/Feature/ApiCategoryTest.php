@@ -15,7 +15,7 @@ class ApiCategoryTest extends TestCase
 
     public function test_guest_cannot_list_categories(): void
     {
-        $this->getJson('/api/categories')
+        $this->getJson('/api/v1/categories')
             ->assertUnauthorized();
     }
 
@@ -26,7 +26,7 @@ class ApiCategoryTest extends TestCase
             ['products:read']
         );
 
-        $this->getJson('/api/categories')
+        $this->getJson('/api/v1/categories')
             ->assertForbidden();
     }
 
@@ -47,7 +47,7 @@ class ApiCategoryTest extends TestCase
             ['categories:read']
         );
 
-        $this->getJson('/api/categories')
+        $this->getJson('/api/v1/categories')
             ->assertOk()
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('data.0.name', 'Makanan')

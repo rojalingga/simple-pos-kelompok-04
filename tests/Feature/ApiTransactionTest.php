@@ -39,7 +39,7 @@ class ApiTransactionTest extends TestCase
 
     public function test_guest_cannot_create_transaction(): void
     {
-        $this->postJson('/api/transactions', $this->payload())
+        $this->postJson('/api/v1/transactions', $this->payload())
             ->assertUnauthorized();
     }
 
@@ -50,7 +50,7 @@ class ApiTransactionTest extends TestCase
             ['products:read']
         );
 
-        $this->postJson('/api/transactions', $this->payload(), [
+        $this->postJson('/api/v1/transactions', $this->payload(), [
             'Idempotency-Key' => 'k1',
         ])->assertForbidden();
     }
@@ -62,7 +62,7 @@ class ApiTransactionTest extends TestCase
             ['transactions:create']
         );
 
-        $this->postJson('/api/transactions', [
+        $this->postJson('/api/v1/transactions', [
             'items' => [
                 [
                     'product_id' => 99999,
@@ -88,11 +88,11 @@ class ApiTransactionTest extends TestCase
             'Idempotency-Key' => 'k3',
         ];
 
-        $first = $this->postJson('/api/transactions', $payload, $headers)
+        $first = $this->postJson('/api/v1/transactions', $payload, $headers)
             ->assertCreated()
             ->assertJsonPath('data.total', 30000);
 
-        $this->postJson('/api/transactions', $payload, $headers)
+        $this->postJson('/api/v1/transactions', $payload, $headers)
             ->assertCreated()
             ->assertHeader('Idempotent-Replayed', 'true')
             ->assertJsonPath('data.id', $first->json('data.id'));
@@ -114,7 +114,7 @@ class ApiTransactionTest extends TestCase
             ['transactions:read']
         );
 
-        $this->getJson("/api/transactions/{$transaction->id}")
+        $this->getJson("/api/v1/transactions/{$transaction->id}")
             ->assertForbidden();
 
         Sanctum::actingAs(
@@ -122,7 +122,7 @@ class ApiTransactionTest extends TestCase
             ['transactions:read']
         );
 
-        $this->getJson("/api/transactions/{$transaction->id}")
+        $this->getJson("/api/v1/transactions/{$transaction->id}")
             ->assertOk()
             ->assertJsonPath('data.id', $transaction->id);
     }

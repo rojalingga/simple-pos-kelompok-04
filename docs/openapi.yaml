@@ -8,7 +8,7 @@ info:
 
 paths:
 
-  /api/login:
+  /api/v1/login:
     post:
       summary: Login dan dapatkan token
 
@@ -50,7 +50,7 @@ paths:
                   message:
                     type: string
 
-  /api/categories:
+  /api/v1/categories:
     get:
       summary: Ambil daftar kategori
 
@@ -83,7 +83,7 @@ paths:
         '403':
           description: Token tidak memiliki ability categories:read
 
-  /api/products:
+  /api/v1/products:
     get:
       summary: Ambil daftar produk
       description: >
@@ -176,12 +176,12 @@ paths:
                         type: string
                         format: uri
                         nullable: true
-                        example: http://localhost/api/products?page=1
+                        example: http://localhost/api/v1/products?page=1
                       last:
                         type: string
                         format: uri
                         nullable: true
-                        example: http://localhost/api/products?page=2
+                        example: http://localhost/api/v1/products?page=2
                       prev:
                         type: string
                         format: uri
@@ -191,7 +191,7 @@ paths:
                         type: string
                         format: uri
                         nullable: true
-                        example: http://localhost/api/products?page=2
+                        example: http://localhost/api/v1/products?page=2
 
                   meta:
                     type: object
@@ -223,7 +223,7 @@ paths:
                       path:
                         type: string
                         format: uri
-                        example: http://localhost/api/products
+                        example: http://localhost/api/v1/products
                       per_page:
                         type: integer
                         example: 15
@@ -244,7 +244,7 @@ paths:
         '422':
           description: Parameter query tidak valid, misalnya category_id tidak ditemukan atau per_page di luar rentang
 
-  /api/transactions:
+  /api/v1/transactions:
     post:
       summary: Buat transaksi baru
 
