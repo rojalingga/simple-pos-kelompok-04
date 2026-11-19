@@ -86,13 +86,66 @@ paths:
   /api/products:
     get:
       summary: Ambil daftar produk
+      description: >
+        Mengembalikan daftar produk dengan paginasi. Dapat difilter berdasarkan
+        kategori, dicari berdasarkan nama, dan diurutkan berdasarkan nama atau harga.
 
       security:
         - bearerAuth: []
 
+      parameters:
+        - name: category_id
+          in: query
+          description: Filter produk berdasarkan ID kategori.
+          required: false
+          schema:
+            type: integer
+            example: 1
+
+        - name: q
+          in: query
+          description: Cari produk berdasarkan nama (minimal 2 karakter).
+          required: false
+          schema:
+            type: string
+            minLength: 2
+            example: kopi
+
+        - name: sort
+          in: query
+          description: Urutkan produk berdasarkan nama atau harga. Awali dengan tanda minus untuk urutan menurun.
+          required: false
+          schema:
+            type: string
+            enum:
+              - name
+              - '-name'
+              - price
+              - '-price'
+            default: name
+
+        - name: page
+          in: query
+          description: Nomor halaman yang ingin ditampilkan.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+
+        - name: per_page
+          in: query
+          description: Jumlah produk per halaman.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 15
+
       responses:
         '200':
-          description: Daftar produk
+          description: Daftar produk berhasil diambil
           content:
             application/json:
               schema:
@@ -105,15 +158,91 @@ paths:
                       properties:
                         id:
                           type: integer
+                          example: 1
                         name:
                           type: string
+                          example: Kopi
                         price:
                           type: integer
+                          example: 15000
                         category:
                           type: string
+                          example: Minuman
+
+                  links:
+                    type: object
+                    properties:
+                      first:
+                        type: string
+                        format: uri
+                        nullable: true
+                        example: http://localhost/api/products?page=1
+                      last:
+                        type: string
+                        format: uri
+                        nullable: true
+                        example: http://localhost/api/products?page=2
+                      prev:
+                        type: string
+                        format: uri
+                        nullable: true
+                        example: null
+                      next:
+                        type: string
+                        format: uri
+                        nullable: true
+                        example: http://localhost/api/products?page=2
+
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      from:
+                        type: integer
+                        nullable: true
+                        example: 1
+                      last_page:
+                        type: integer
+                        example: 2
+                      links:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            url:
+                              type: string
+                              format: uri
+                              nullable: true
+                            label:
+                              type: string
+                              example: '&laquo; Previous'
+                            active:
+                              type: boolean
+                      path:
+                        type: string
+                        format: uri
+                        example: http://localhost/api/products
+                      per_page:
+                        type: integer
+                        example: 15
+                      to:
+                        type: integer
+                        nullable: true
+                        example: 15
+                      total:
+                        type: integer
+                        example: 20
 
         '401':
           description: Token tidak ada atau tidak valid
+
+        '403':
+          description: Token tidak memiliki ability products:read
+
+        '422':
+          description: Parameter query tidak valid, misalnya category_id tidak ditemukan atau per_page di luar rentang
 
   /api/transactions:
     post:
