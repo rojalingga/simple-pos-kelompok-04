@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 class ApiClientDemo extends Command
 {
     protected $signature = 'api:demo';
+
     protected $description = 'Demonstrate consuming the Simple POS API as an external client';
 
     public function handle(): int
@@ -23,11 +24,13 @@ class ApiClientDemo extends Command
 
         $login = Http::acceptJson()->post("{$apiUrl}/login", [
             'email' => 'kasir@pos.test',
-            'password' => 'password',
+            'password' => 'kata-sandi-salah',
         ]);
 
         if ($login->failed()) {
             $this->error('Login gagal: '.$login->json('message'));
+            $this->warn('Command berhenti sebelum memakai token kosong.');
+
             return self::FAILURE;
         }
 
@@ -38,6 +41,7 @@ class ApiClientDemo extends Command
 
         if ($products->failed()) {
             $this->error('Token kedaluwarsa/dicabut, atau server sedang bermasalah.');
+
             return self::FAILURE;
         }
 
