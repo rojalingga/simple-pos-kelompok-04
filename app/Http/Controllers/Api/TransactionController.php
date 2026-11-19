@@ -48,7 +48,7 @@ class TransactionController extends Controller
                 'id' => $transaction->id,
                 'total' => $transaction->total,
             ],
-        ], 21);
+        ], 201);
     }
 
     public function show(Transaction $transaction)

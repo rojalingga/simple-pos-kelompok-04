@@ -1,4 +1,14 @@
 
+# Perbandingan pengalaman pengujian API (Postman vs curl):
+# Pengujian tiga endpoint utama melalui Postman terasa lebih terstruktur karena token
+# dapat disimpan sebagai environment variable, header Authorization dan Idempotency-Key
+# dapat diatur melalui antarmuka, serta status, header, dan body respons dapat diperiksa
+# dalam satu jendela. Postman juga memudahkan penyimpanan dan pengulangan request tanpa
+# mengetik ulang perintah. Sebaliknya, curl lebih ringan dan cepat untuk request sekali
+# pakai karena langsung dijalankan di terminal dan mudah disalin ke dokumentasi, tetapi
+# pengelolaan token, header, dan pembacaan response JSON harus dilakukan secara manual.
+# Dengan demikian, Postman/Insomnia lebih cocok untuk eksplorasi dan pengujian berulang,
+# sedangkan curl lebih praktis untuk verifikasi cepat dan otomatisasi.
 openapi: 3.0.0
 
 info:

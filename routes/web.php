@@ -8,8 +8,14 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
+Route::view('/info', 'info')->name('info');
+
 Route::get('/', function () {
-    return redirect()->route('pos.create');
+    if (auth()->check()) {
+        return redirect()->route('pos.create');
+    }
+
+    return view('info');
 });
 
 Route::middleware('guest')->group(function () {
